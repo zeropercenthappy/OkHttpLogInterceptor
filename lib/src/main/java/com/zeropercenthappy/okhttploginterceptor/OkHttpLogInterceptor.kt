@@ -31,8 +31,15 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
 
         logBody(request.body)
 
-        val response = chain.proceed(request)
-        logResponse(response)
+        val response: Response
+        try {
+            response = chain.proceed(request)
+            logResponse(response)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            log("response fail: ${e.localizedMessage}")
+            throw e
+        }
 
         log("===")
 
@@ -68,16 +75,12 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
                     val size = part.headers?.size ?: 0
                     for (i in 0 until size) {
                         if (TextUtils.equals(part.headers?.name(i), "Content-Disposition")) {
-                            val matcher = VALUE_PATTERN.matcher(part.headers?.value(i))
-                            matcher.find()
-                            val key = matcher.group()
-                            if (TextUtils.equals(part.body.contentType()?.type, "text")) {
-                                val buffer = Buffer()
-                                part.body.writeTo(buffer)
-                                val value = buffer.readString(Charset.defaultCharset())
-                                log("multipart body: $key=$value")
+                            val key = matchMultipartBodyKey(part.headers?.value(i) ?: "")
+                            val partBody = part.body
+                            if (TextUtils.equals(partBody.contentType()?.type, "text")) {
+                                log("multipart body: $key=${readRequestBodyString(partBody)}")
                             } else {
-                                log("multipart body: $key={binary},size=${formatSize(part.body.contentLength())}")
+                                log("multipart body: $key={binary},size=${formatSize(partBody.contentLength())}")
                             }
                         }
                     }
@@ -85,10 +88,7 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
             }
             else -> {
                 if (TextUtils.equals(requestBody.contentType()?.subtype?.toLowerCase(Locale.US), "json")) {
-                    val buffer = Buffer()
-                    requestBody.writeTo(buffer)
-                    val value = buffer.readString(Charset.defaultCharset())
-                    log("json body: $value")
+                    log("json body: ${readRequestBodyString(requestBody)}")
                 }
             }
         }
@@ -100,7 +100,7 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
         }
         val body = response.body ?: return
         if (TextUtils.equals(body.contentType()?.type, "application")) {
-            log("response: ${body.string()}")
+            log("response: ${readResponseBody(body)}")
         } else {
             log("response: ${body.contentType()?.type}/${body.contentType()?.subtype}, size=${formatSize(body.contentLength())}")
         }
@@ -108,6 +108,30 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
 
     private fun log(content: String) {
         Log.i(logTag, content)
+    }
+
+    private fun readRequestBodyString(requestBody: RequestBody): String {
+        val buffer = Buffer()
+        requestBody.writeTo(buffer)
+        return buffer.readString(Charset.defaultCharset())
+    }
+
+    private fun readResponseBody(responseBody: ResponseBody): String {
+        val source = responseBody.source()
+        source.request(Long.MAX_VALUE)
+        val buffer = source.buffer.clone()
+        return buffer.readString(Charset.defaultCharset())
+    }
+
+    private fun matchMultipartBodyKey(content: String): String {
+        return try {
+            val matcher = VALUE_PATTERN.matcher(content)
+            matcher.find()
+            matcher.group()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ""
+        }
     }
 
     private fun formatSize(byte: Long): String {

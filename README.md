@@ -24,7 +24,7 @@ Add the dependency:
 
 ```groovy
 dependencies {
-    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.1'
+    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.2'
 }
 ```
 
@@ -71,6 +71,7 @@ multipart body: xxx=xxx
 multipart body: xxx={binary},size=xxxKB
 json body: {"xxx:xxx"}
 response: {"xxx":"xxx"}
+response fail: Unable to resolve host "www.xxxxx.com": No address associated with hostname
 ===
 ```
 
