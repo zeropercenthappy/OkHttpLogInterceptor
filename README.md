@@ -24,7 +24,7 @@ Add the dependency:
 
 ```groovy
 dependencies {
-    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.0'
+    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.1'
 }
 ```
 
@@ -62,11 +62,12 @@ It will print as below:
 
 ```
 ===
-url:https://www.xxxxx.com/xx?xxx=xxx
+url: https://www.xxxxx.com/xx?xxx=xxx
 method: POST
 header: XXXXX=XXXXXXXXXX
 url parameter: xxx=xxx
 form body: xxx=xxx
+multipart body: xxx=xxx
 multipart body: xxx={binary},size=xxxKB
 json body: {"xxx:xxx"}
 response: {"xxx":"xxx"}

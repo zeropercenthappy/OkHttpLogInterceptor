@@ -2,6 +2,7 @@ package com.zeropercenthappy.okhttploginterceptor
 
 import android.text.TextUtils
 import android.util.Log
+import com.zeropercenthappy.utilslibrary.utils.NumberUtils
 import okhttp3.*
 import okio.Buffer
 import java.nio.charset.Charset
@@ -20,9 +21,9 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
         val request = chain.request()
         log("===")
 
-        log("url:${request.url.toUrl()}")
+        log("url: ${request.url.toUrl()}")
 
-        log("method:${request.method}")
+        log("method: ${request.method}")
 
         logHeader(request.headers)
 
@@ -76,7 +77,7 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
                                 val value = buffer.readString(Charset.defaultCharset())
                                 log("multipart body: $key=$value")
                             } else {
-                                log("multipart body: $key={binary},size=${part.body.contentLength() / 1024}KB")
+                                log("multipart body: $key={binary},size=${formatSize(part.body.contentLength())}")
                             }
                         }
                     }
@@ -101,11 +102,30 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
         if (TextUtils.equals(body.contentType()?.type, "application")) {
             log("response: ${body.string()}")
         } else {
-            log("response: ${body.contentType()?.type}/${body.contentType()?.subtype}, size=${body.contentLength() / 1024}KB")
+            log("response: ${body.contentType()?.type}/${body.contentType()?.subtype}, size=${formatSize(body.contentLength())}")
         }
     }
 
     private fun log(content: String) {
         Log.i(logTag, content)
+    }
+
+    private fun formatSize(byte: Long): String {
+        val sizeSB = StringBuilder()
+        when (byte) {
+            in 0L..1024L -> {
+                sizeSB.append(NumberUtils.formatDecimal(byte.toFloat(), 2)).append("Byte")
+            }
+            in 1025L..1024000L -> {
+                sizeSB.append(NumberUtils.formatDecimal(byte / 1024f, 2)).append("KB")
+            }
+            in 1025000L..1024000000L -> {
+                sizeSB.append(NumberUtils.formatDecimal(byte / 1024000f, 2)).append("MB")
+            }
+            in 1025000000L..1024000000000L -> {
+                sizeSB.append(NumberUtils.formatDecimal(byte / 1024000000f, 2)).append("GB")
+            }
+        }
+        return sizeSB.toString()
     }
 }
