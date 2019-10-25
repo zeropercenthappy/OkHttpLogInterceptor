@@ -1,15 +1,15 @@
-# OkHttpLogInterceptor [简体中文](https://github.com/zeropercenthappy/OkHttpLogInterceptor/blob/master/README_CN.md)
-A light weight and practical okhttp log interceptor
+# OkHttpLogInterceptor
+轻量且实用的OkHttp日志拦截器
 
-support to print `url`, `method`, `url parameter`, `body`, `multipart`, and `response`
+支持打印`url`、`请求方法`、`header`、`url参数`、`body`、`multipart`以及`响应结果`
 
 ---
 
-## Download
+## 下载
 
-### Step 1.
+### 步骤 1.
 
-Add it in your root build.gradle at the end of repositories:
+添加以下配置到项目根目录位置的build.gradle：
 
 ```groovy
 allprojects {
@@ -20,9 +20,9 @@ allprojects {
 }
 ```
 
-### Step 2.
+### 步骤 2.
 
-Add the dependency in your module's build.gradle:
+在Module目录下的build.gradle文件内添加依赖：
 
 ```groovy
 dependencies {
@@ -30,16 +30,16 @@ dependencies {
 }
 ```
 
-## Usage
+## 用法
 
 ### Kotlin
 
 ```kotlin
-// the default tag is OkHttp
+// 使用默认的tag：OkHttp
 val logInterceptor = OkHttpLogInterceptor()
-// or you can custom your own tag
+// 也可以使用自定义的tag
 val logInterceptor = OkHttpLogInterceptor("myTag")
-// add this interceptor
+// 添加该拦截器
 val okHttpClient = OkHttpClient.Builder()
     .addInterceptor(logInterceptor)
     .build()
@@ -48,19 +48,19 @@ val okHttpClient = OkHttpClient.Builder()
 ### Java
 
 ```java
-// the default tag is OkHttp
+// 使用默认的tag：OkHttp
 OkHttpLogInterceptor logInterceptor = new OkHttpLogInterceptor();
-// or you can custom your own tag
+// 也可以使用自定义的tag
 OkHttpLogInterceptor logInterceptor = new OkHttpLogInterceptor("myTag");
-// add this interceptor
+// 添加该拦截器
 OkHttpClient okHttpClient = new OkHttpClient.Builder()
         .addInterceptor(logInterceptor)
         .build();
 ```
 
-## Effect
+## 效果
 
-It will print as below:
+请求发起后会根据请求情况打印以下日志：
 
 ```
 ===
