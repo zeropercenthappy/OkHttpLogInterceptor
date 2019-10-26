@@ -2,10 +2,11 @@ package com.zeropercenthappy.okhttploginterceptor
 
 import android.text.TextUtils
 import android.util.Log
-import com.zeropercenthappy.utilslibrary.utils.NumberUtils
 import okhttp3.*
 import okio.Buffer
+import java.math.RoundingMode
 import java.nio.charset.Charset
+import java.text.DecimalFormat
 import java.util.*
 import java.util.regex.Pattern
 
@@ -13,7 +14,7 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
 
     companion object {
         private const val DEFAULT_LOG_TAG = "OkHttp"
-        private const val PART_VALUE_REGEX = "(?<=name=\").*?(?=\")"
+        private const val PART_VALUE_REGEX = "(?<=name=\").*?(?=\"(\$|;\\s))"
         private val VALUE_PATTERN = Pattern.compile(PART_VALUE_REGEX)
     }
 
@@ -138,18 +139,32 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
         val sizeSB = StringBuilder()
         when (byte) {
             in 0L..1024L -> {
-                sizeSB.append(NumberUtils.formatDecimal(byte.toFloat(), 2)).append("Byte")
+                sizeSB.append(formatDecimal(byte.toFloat(), 2)).append("Byte")
             }
             in 1025L..1024000L -> {
-                sizeSB.append(NumberUtils.formatDecimal(byte / 1024f, 2)).append("KB")
+                sizeSB.append(formatDecimal(byte / 1024f, 2)).append("KB")
             }
             in 1025000L..1024000000L -> {
-                sizeSB.append(NumberUtils.formatDecimal(byte / 1024000f, 2)).append("MB")
+                sizeSB.append(formatDecimal(byte / 1024000f, 2)).append("MB")
             }
             in 1025000000L..1024000000000L -> {
-                sizeSB.append(NumberUtils.formatDecimal(byte / 1024000000f, 2)).append("GB")
+                sizeSB.append(formatDecimal(byte / 1024000000f, 2)).append("GB")
             }
         }
         return sizeSB.toString()
+    }
+
+    private fun formatDecimal(content: Float, scaleNumber: Int): String {
+        val ruleSB = StringBuilder("#.")
+        for (i in 0 until scaleNumber) {
+            ruleSB.append("0")
+        }
+        val decimalFormat = DecimalFormat(ruleSB.toString())
+        decimalFormat.roundingMode = RoundingMode.HALF_UP
+        val result = StringBuilder(decimalFormat.format(content))
+        if (result[0] == '.') {
+            result.insert(0, "0")
+        }
+        return result.toString()
     }
 }

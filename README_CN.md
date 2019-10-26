@@ -26,7 +26,7 @@ allprojects {
 
 ```groovy
 dependencies {
-    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.2'
+    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.3'
 }
 ```
 
@@ -71,7 +71,7 @@ url parameter: xxx=xxx
 form body: xxx=xxx
 multipart body: xxx=xxx
 multipart body: xxx={binary},size=xxxKB
-json body: {"xxx:xxx"}
+json body: {"xxx":"xxx"}
 response: {"xxx":"xxx"}
 response fail: Unable to resolve host "www.xxxxx.com": No address associated with hostname
 ===
