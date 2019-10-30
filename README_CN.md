@@ -26,7 +26,7 @@ allprojects {
 
 ```groovy
 dependencies {
-    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.3'
+    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.4'
 }
 ```
 

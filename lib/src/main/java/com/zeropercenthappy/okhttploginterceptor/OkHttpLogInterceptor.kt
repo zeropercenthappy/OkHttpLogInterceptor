@@ -14,8 +14,8 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
 
     companion object {
         private const val DEFAULT_LOG_TAG = "OkHttp"
-        private const val PART_VALUE_REGEX = "(?<=name=\").*?(?=\"(\$|;\\s))"
-        private val VALUE_PATTERN = Pattern.compile(PART_VALUE_REGEX)
+        private val MULTIPART_VALUE_PATTERN = Pattern.compile("(?<=name=\").*?(?=\"(\$|;\\s))")
+        private val TEXT_CONTENT_TYPE_PATTERN = Pattern.compile("^(application/(json|xml)|text/*).*")
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -100,11 +100,16 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
             return
         }
         val body = response.body ?: return
-        if (TextUtils.equals(body.contentType()?.type, "application")) {
+        if (isTextContentType(body.contentType()?.toString() ?: "")) {
             log("response: ${readResponseBody(body)}")
         } else {
             log("response: ${body.contentType()?.type}/${body.contentType()?.subtype}, size=${formatSize(body.contentLength())}")
         }
+    }
+
+    private fun isTextContentType(contentType: String): Boolean {
+        val matcher = TEXT_CONTENT_TYPE_PATTERN.matcher(contentType)
+        return matcher.matches()
     }
 
     private fun log(content: String) {
@@ -126,7 +131,7 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
 
     private fun matchMultipartBodyKey(content: String): String {
         return try {
-            val matcher = VALUE_PATTERN.matcher(content)
+            val matcher = MULTIPART_VALUE_PATTERN.matcher(content)
             matcher.find()
             matcher.group()
         } catch (e: Exception) {
