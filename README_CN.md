@@ -26,7 +26,7 @@ allprojects {
 
 ```groovy
 dependencies {
-    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.4'
+    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.5'
 }
 ```
 
@@ -63,17 +63,17 @@ OkHttpClient okHttpClient = new OkHttpClient.Builder()
 请求发起后会根据请求情况打印以下日志：
 
 ```
-===
+==Request==
 url: https://www.xxxxx.com/xx?xxx=xxx
 method: POST
 header: XXXXX=XXXXXXXXXX
 url parameter: xxx=xxx
 form body: xxx=xxx
 multipart body: xxx=xxx
-multipart body: xxx={binary},size=xxxKB
+multipart body: xxx={binary}, size=xxxKB
 json body: {"xxx":"xxx"}
+==Response==
 response: {"xxx":"xxx"}
 response fail: Unable to resolve host "www.xxxxx.com": No address associated with hostname
-===
 ```
 

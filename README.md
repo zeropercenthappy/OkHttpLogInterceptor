@@ -26,7 +26,7 @@ Add the dependency in your module's build.gradle:
 
 ```groovy
 dependencies {
-    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.4'
+    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.5'
 }
 ```
 
@@ -63,17 +63,17 @@ OkHttpClient okHttpClient = new OkHttpClient.Builder()
 It will print as below:
 
 ```
-===
+==Request==
 url: https://www.xxxxx.com/xx?xxx=xxx
 method: POST
 header: XXXXX=XXXXXXXXXX
 url parameter: xxx=xxx
 form body: xxx=xxx
 multipart body: xxx=xxx
-multipart body: xxx={binary},size=xxxKB
+multipart body: xxx={binary}, size=xxxKB
 json body: {"xxx":"xxx"}
+==Response==
 response: {"xxx":"xxx"}
 response fail: Unable to resolve host "www.xxxxx.com": No address associated with hostname
-===
 ```
 
