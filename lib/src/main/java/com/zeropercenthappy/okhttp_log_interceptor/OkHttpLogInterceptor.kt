@@ -42,7 +42,7 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
     private fun printRequest(request: Request, protocol: String) {
         log("== Request ==")
         // 请求行
-        log("${request.method} ${request.url.encodedPath} $protocol")
+        log("${request.method} ${request.url.encodedPath}?${request.url.encodedQuery} $protocol")
         // Headers
         logHeaders(request.headers)
         // Body
