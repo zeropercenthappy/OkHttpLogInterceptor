@@ -26,7 +26,7 @@ Add the dependency in your module's build.gradle:
 
 ```groovy
 dependencies {
-    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.5'
+    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.6.0'
 }
 ```
 
@@ -35,10 +35,7 @@ dependencies {
 ### Kotlin
 
 ```kotlin
-// the default tag is OkHttp
-val logInterceptor = OkHttpLogInterceptor()
-// or you can custom your own tag
-val logInterceptor = OkHttpLogInterceptor("myTag")
+val logInterceptor = OkHttpLogInterceptor("yourOwnTag")
 // add this interceptor
 val okHttpClient = OkHttpClient.Builder()
     .addInterceptor(logInterceptor)
@@ -48,10 +45,7 @@ val okHttpClient = OkHttpClient.Builder()
 ### Java
 
 ```java
-// the default tag is OkHttp
-OkHttpLogInterceptor logInterceptor = new OkHttpLogInterceptor();
-// or you can custom your own tag
-OkHttpLogInterceptor logInterceptor = new OkHttpLogInterceptor("myTag");
+OkHttpLogInterceptor logInterceptor = new OkHttpLogInterceptor("yourOwnTag");
 // add this interceptor
 OkHttpClient okHttpClient = new OkHttpClient.Builder()
         .addInterceptor(logInterceptor)
@@ -63,17 +57,20 @@ OkHttpClient okHttpClient = new OkHttpClient.Builder()
 It will print as below:
 
 ```
-==Request==
-url: https://www.xxxxx.com/xx?xxx=xxx
-method: POST
-header: XXXXX=XXXXXXXXXX
-url parameter: xxx=xxx
-form body: xxx=xxx
-multipart body: xxx=xxx
-multipart body: xxx={binary}, size=xxxKB
-json body: {"xxx":"xxx"}
-==Response==
-response: {"xxx":"xxx"}
-response fail: Unable to resolve host "www.xxxxx.com": No address associated with hostname
+== Request ==
+POST /login http/1.1
+ 
+name=guest&password=123456
+== Response ==
+http/1.1 200 
+Server: Tengine/2.2.2
+Date: Wed, 16 Dec 2020 06:59:01 GMT
+Content-Type: application/json;charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Vary: Accept-Encoding
+Set-Cookie: JSESSIONID=CC136BA58768DDD1122D53194438E6F2; Path=/; HttpOnly
+ 
+{"code":200,"succeed":true}
 ```
 

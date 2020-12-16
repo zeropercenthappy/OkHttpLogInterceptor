@@ -1,103 +1,118 @@
 package com.zeropercenthappy.okhttp_log_interceptor
 
-import android.text.TextUtils
 import android.util.Log
 import okhttp3.*
 import okio.Buffer
 import java.math.RoundingMode
 import java.nio.charset.Charset
 import java.text.DecimalFormat
-import java.util.*
-import java.util.regex.Pattern
 
-class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Interceptor {
+class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
 
     companion object {
-        private const val DEFAULT_LOG_TAG = "OkHttp"
-        private val MULTIPART_VALUE_PATTERN = Pattern.compile("(?<=name=\").*?(?=\"(\$|;\\s))")
-        private val TEXT_CONTENT_TYPE_PATTERN =
-            Pattern.compile("^(application/(json|xml)|text/*).*")
+        private const val textMimeType = "text/plain"
+        private const val jsonMimeType = "application/json"
+        private const val xmlMimeType = "text/xml"
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
+        val connection = chain.connection()
+        val protocol = connection?.protocol() ?: Protocol.HTTP_1_1
+
         val request = chain.request()
-        logRequest(request)
+        printRequest(request, protocol.toString())
 
         val response: Response
         try {
             response = chain.proceed(request)
-            logResponse(response)
+            printResponse(response, protocol.toString())
         } catch (e: Exception) {
-            e.printStackTrace()
-            log("response fail: ${e.localizedMessage}")
+            log("== Response ==")
+            log("Error: ${e.localizedMessage}")
             throw e
         }
 
         return response
     }
 
-    private fun logHeader(headers: Headers?) {
-        headers ?: return
-
-        for (i in 0 until headers.size) {
-            log("header: ${headers.name(i)}=${headers.value(i)}")
-        }
+    private fun log(content: String) {
+        Log.i(logTag, content)
     }
 
-    private fun logParameter(httpUrl: HttpUrl?) {
-        httpUrl ?: return
-
-        for (name in httpUrl.queryParameterNames) {
-            for (value in httpUrl.queryParameterValues(name)) {
-                log("url parameter: $name=$value")
-            }
-        }
-    }
-
-    private fun logBody(requestBody: RequestBody?) {
-        requestBody ?: return
-
-        when (requestBody) {
+    private fun printRequest(request: Request, protocol: String) {
+        log("== Request ==")
+        // 请求行
+        log("${request.method} ${request.url.encodedPath} $protocol")
+        // Headers
+        logHeaders(request.headers)
+        // Body
+        when (val requestBody = request.body) {
             is FormBody -> {
+                val formBodySb = StringBuilder()
                 for (i in 0 until requestBody.size) {
-                    log("form body: ${requestBody.name(i)}=${requestBody.value(i)}")
+                    formBodySb.append(requestBody.name(i))
+                        .append("=")
+                        .append(requestBody.value(i))
+                        .append("&")
+
                 }
+                if (formBodySb.last() == '&') formBodySb.deleteCharAt(formBodySb.lastIndex)
+                log(formBodySb.toString())
             }
             is MultipartBody -> {
                 for (part in requestBody.parts) {
-                    val size = part.headers?.size ?: 0
-                    for (i in 0 until size) {
-                        if (TextUtils.equals(part.headers?.name(i), "Content-Disposition")) {
-                            val key = matchMultipartBodyKey(part.headers?.value(i) ?: "")
-                            val partBody = part.body
-                            if (TextUtils.equals(partBody.contentType()?.type, "text")) {
-                                log("multipart body: $key=${readRequestBodyString(partBody)}")
-                            } else {
-                                log("multipart body: $key={binary}, size=${formatSize(partBody.contentLength())}")
-                            }
-                        }
+                    val partBody = part.body
+                    val headers = part.headers ?: Headers.Builder().build()
+                    logHeaders(headers)
+                    val contentType = partBody.contentType()?.toString() ?: ""
+                    if (isTextContentType(contentType)) {
+                        log(readRequestBodyString(partBody))
+                    } else {
+                        log("(binary, size:${formatSize(partBody.contentLength())})")
                     }
                 }
             }
             else -> {
-                if (TextUtils.equals(
-                        requestBody.contentType()?.subtype?.toLowerCase(Locale.US),
-                        "json"
-                    )
-                ) {
-                    log("json body: ${readRequestBodyString(requestBody)}")
+                if (requestBody != null) {
+                    val contentType = requestBody.contentType()?.toString() ?: ""
+                    if (isTextContentType(contentType)) {
+                        log(readRequestBodyString(requestBody))
+                    } else {
+                        log("(binary, size:${formatSize(requestBody.contentLength())})")
+                    }
                 }
             }
         }
     }
 
-    private fun isTextContentType(contentType: String): Boolean {
-        val matcher = TEXT_CONTENT_TYPE_PATTERN.matcher(contentType)
-        return matcher.matches()
+    private fun printResponse(response: Response, protocol: String) {
+        log("== Response ==")
+        // 状态行
+        log("$protocol ${response.code} ${response.message}")
+        // Headers
+        logHeaders(response.headers)
+        // Body
+        val body = response.body ?: return
+        val contentType = body.contentType()?.toString() ?: ""
+        if (isTextContentType(contentType)) {
+            log(readResponseBody(body))
+        } else {
+            log("(binary, size=${formatSize(body.contentLength())})")
+        }
     }
 
-    private fun log(content: String) {
-        Log.i(logTag, content)
+    private fun logHeaders(headers: Headers) {
+        for (header in headers) {
+            log("${header.first}: ${header.second}")
+        }
+        log(" ")
+    }
+
+    private fun isTextContentType(contentType: String): Boolean {
+        return contentType.isEmpty() ||
+                contentType.contains(textMimeType) ||
+                contentType.contains(jsonMimeType) ||
+                contentType.contains(xmlMimeType)
     }
 
     private fun readRequestBodyString(requestBody: RequestBody): String {
@@ -111,17 +126,6 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
         source.request(Long.MAX_VALUE)
         val buffer = source.buffer.clone()
         return buffer.readString(Charset.defaultCharset())
-    }
-
-    private fun matchMultipartBodyKey(content: String): String {
-        return try {
-            val matcher = MULTIPART_VALUE_PATTERN.matcher(content)
-            matcher.find()
-            matcher.group()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            ""
-        }
     }
 
     private fun formatSize(byte: Long): String {
@@ -156,33 +160,5 @@ class OkHttpLogInterceptor(private val logTag: String? = DEFAULT_LOG_TAG) : Inte
             result.insert(0, "0")
         }
         return result.toString()
-    }
-
-    private fun logRequest(request: Request?) {
-        request ?: return
-
-        log("==Request==")
-        log("url: ${request.url.toUrl()}")
-        log("method: ${request.method}")
-        logHeader(request.headers)
-        logParameter(request.url)
-        logBody(request.body)
-    }
-
-    private fun logResponse(response: Response?) {
-        response ?: return
-        val body = response.body ?: return
-
-        log("==Response==")
-        logHeader(response.headers)
-        if (isTextContentType(body.contentType()?.toString() ?: "")) {
-            log("response: ${readResponseBody(body)}")
-        } else {
-            log(
-                "response: " +
-                        "${body.contentType()?.type}/${body.contentType()?.subtype}, " +
-                        "size=${formatSize(body.contentLength())}"
-            )
-        }
     }
 }
