@@ -42,7 +42,8 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
     private fun printRequest(request: Request, protocol: String) {
         log("== Request ==")
         // 请求行
-        log("${request.method} ${request.url.encodedPath}?${request.url.encodedQuery ?: ""} $protocol")
+        val query = request.url.encodedQuery
+        log("${request.method} ${request.url.encodedPath}${if (query != null) "?$query" else ""} $protocol")
         // Headers
         logHeaders(request.headers)
         // Body
