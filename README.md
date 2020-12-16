@@ -1,7 +1,5 @@
 # OkHttpLogInterceptor [简体中文](https://github.com/zeropercenthappy/OkHttpLogInterceptor/blob/master/README_CN.md)
-A light weight and practical okhttp log interceptor
-
-support to print `url`, `method`, `url parameter`, `body`, `multipart`, and `response`
+A light weight and practical OkHttp log interceptor
 
 ---
 

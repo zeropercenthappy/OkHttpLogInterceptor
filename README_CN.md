@@ -1,8 +1,6 @@
 # OkHttpLogInterceptor
 轻量且实用的OkHttp日志拦截器
 
-支持打印`url`、`请求方法`、`header`、`url参数`、`body`、`multipart`以及`响应结果`
-
 ---
 
 ## 下载
