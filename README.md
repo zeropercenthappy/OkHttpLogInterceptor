@@ -24,7 +24,7 @@ Add the dependency in your module's build.gradle:
 
 ```groovy
 dependencies {
-    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.6.3'
+    implementation 'com.github.zeropercenthappy:OkHttpLogInterceptor:1.6.4'
 }
 ```
 
@@ -55,11 +55,11 @@ OkHttpClient okHttpClient = new OkHttpClient.Builder()
 It will print as below:
 
 ```
-== Request ==
+== Request for api.xxx.com ==
 POST /login http/1.1
  
 name=guest&password=123456
-== Response ==
+== Response from api.xxx.com ==
 http/1.1 200 
 Server: Tengine/2.2.2
 Date: Wed, 16 Dec 2020 06:59:01 GMT
