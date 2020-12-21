@@ -20,14 +20,16 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
         val protocol = connection?.protocol() ?: Protocol.HTTP_1_1
 
         val request = chain.request()
+        log("== Request for ${request.url.host} ==")
         printRequest(request, protocol.toString())
 
         val response: Response
         try {
             response = chain.proceed(request)
+            log("== Response from ${request.url.host} ==")
             printResponse(response, protocol.toString())
         } catch (e: Exception) {
-            log("== Response ==")
+            log("== Response from ${request.url.host} ==")
             log("Error: ${e.localizedMessage}")
             throw e
         }
@@ -40,7 +42,6 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
     }
 
     private fun printRequest(request: Request, protocol: String) {
-        log("== Request ==")
         // 请求行
         val query = request.url.encodedQuery
         log("${request.method} ${request.url.encodedPath}${if (query != null) "?$query" else ""} $protocol")
@@ -87,7 +88,6 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
     }
 
     private fun printResponse(response: Response, protocol: String) {
-        log("== Response ==")
         // 状态行
         log("$protocol ${response.code} ${response.message}")
         // Headers
