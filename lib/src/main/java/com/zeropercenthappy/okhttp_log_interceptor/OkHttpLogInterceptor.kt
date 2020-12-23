@@ -3,6 +3,7 @@ package com.zeropercenthappy.okhttp_log_interceptor
 import android.util.Log
 import okhttp3.*
 import okio.Buffer
+import okio.GzipSource
 import java.math.RoundingMode
 import java.nio.charset.Charset
 import java.text.DecimalFormat
@@ -20,17 +21,20 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
         val protocol = connection?.protocol() ?: Protocol.HTTP_1_1
 
         val request = chain.request()
-        log("== Request for ${request.url.host} ==")
+        log("--> Request for ${request.url.scheme}://${request.url.host}")
         printRequest(request, protocol.toString())
+        log("--> Request end")
 
         val response: Response
         try {
             response = chain.proceed(request)
-            log("== Response from ${request.url.host} ==")
+            log("<-- Response from ${request.url.scheme}://${request.url.host}")
             printResponse(response, protocol.toString())
+            log("<-- Response end")
         } catch (e: Exception) {
-            log("== Response from ${request.url.host} ==")
+            log("<-- Response from ${request.url.scheme}://${request.url.host}")
             log("Error: ${e.localizedMessage}")
+            log("<-- Response end")
             throw e
         }
 
@@ -96,7 +100,7 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
         val body = response.body ?: return
         val contentType = body.contentType()?.toString() ?: ""
         if (isTextContentType(contentType)) {
-            log(readResponseBody(body))
+            log(readResponseBody(response))
         } else {
             log("(binary, size=${formatSize(body.contentLength())})")
         }
@@ -122,11 +126,27 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
         return buffer.readString(Charset.defaultCharset())
     }
 
-    private fun readResponseBody(responseBody: ResponseBody): String {
-        val source = responseBody.source()
+    private fun readResponseBody(response: Response): String {
+        val body = response.body ?: return ""
+        val source = body.source()
         source.request(Long.MAX_VALUE)
-        val buffer = source.buffer.clone()
-        return buffer.readString(Charset.defaultCharset())
+        if ("gzip".equals(response.header("Content-Encoding"), ignoreCase = true)) {
+            // 对 gzip 压缩过的数据进行解压后再使用
+            val unCompressBuffer = Buffer()
+            GzipSource(source.buffer.clone()).use { gzipSource ->
+                unCompressBuffer.writeAll(gzipSource)
+            }
+            if (unCompressBuffer.size != 0L) {
+                val contentType = body.contentType()
+                val charset: Charset = contentType?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
+                return unCompressBuffer.readString(charset)
+            } else {
+                return ""
+            }
+        } else {
+            // 非 gzip 压缩过的数据，直接使用
+            return source.buffer.clone().readString(Charset.defaultCharset())
+        }
     }
 
     private fun formatSize(byte: Long): String {
