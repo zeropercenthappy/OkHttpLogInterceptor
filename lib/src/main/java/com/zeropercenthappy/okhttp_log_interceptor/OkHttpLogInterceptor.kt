@@ -21,7 +21,7 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
         val protocol = connection?.protocol() ?: Protocol.HTTP_1_1
 
         val request = chain.request()
-        log("--> Request for ${request.url.scheme}://${request.url.host}")
+        log("--> Request for ${request.url.scheme}://${request.url.host}${request.url.port}")
         printRequest(request, protocol.toString())
         log("--> Request end")
 
