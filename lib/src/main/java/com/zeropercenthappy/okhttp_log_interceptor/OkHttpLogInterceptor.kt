@@ -21,18 +21,18 @@ class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
         val protocol = connection?.protocol() ?: Protocol.HTTP_1_1
 
         val request = chain.request()
-        log("--> Request for ${request.url.scheme}://${request.url.host}${request.url.port}")
+        log("--> Request for ${request.url.scheme}://${request.url.host}:${request.url.port}")
         printRequest(request, protocol.toString())
         log("--> Request end")
 
         val response: Response
         try {
             response = chain.proceed(request)
-            log("<-- Response from ${request.url.scheme}://${request.url.host}")
+            log("<-- Response from ${request.url.scheme}://${request.url.host}:${request.url.port}")
             printResponse(response, protocol.toString())
             log("<-- Response end")
         } catch (e: Exception) {
-            log("<-- Response from ${request.url.scheme}://${request.url.host}")
+            log("<-- Response from ${request.url.scheme}://${request.url.host}:${request.url.port}")
             log("Error: ${e.localizedMessage}")
             log("<-- Response end")
             throw e
