@@ -11,7 +11,7 @@ import java.text.DecimalFormat
 class OkHttpLogInterceptor(private val logTag: String) : Interceptor {
 
     companion object {
-        private const val textMimeType = "text/plain"
+        private const val textMimeType = "text/"
         private const val jsonMimeType = "application/json"
         private const val xmlMimeType = "text/xml"
     }
